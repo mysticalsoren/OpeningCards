@@ -1,1 +1,10 @@
-{}
+{
+    "MysticalSorenUtils": {
+        "git": "https://gitea.com/mysticalsoren/Utils.git",
+        "hash": "813ae9de5bb8b5cd8ed0144d56a3c84489635222"
+    },
+    "Auto-Cards": {
+        "git": "https://github.com/LewdLeah/Auto-Cards.git",
+        "hash": "a3a9c8373c2b4eff7f2c87be7a67bbb325cd334a"
+    }
+}
