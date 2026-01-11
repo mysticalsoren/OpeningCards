@@ -59,7 +59,7 @@ class SorenOpeningCards {
         }
         if (MysticalSorenUtilities.getState("AutoCards", { config: { doAC: false } }).config.doAC) {
             const queue = []
-            const regex = new RegExp(`${config.config.RegexLabel}: true`, "gi")
+            const regex = new RegExp(`^${config.config.RegexLabel}: true$`, "gim")
             storyCards.forEach(storyCard => {
                 if (storyCard.entry.startsWith("{title: ")) {
                     return
