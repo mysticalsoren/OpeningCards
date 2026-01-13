@@ -48,7 +48,13 @@ class SorenOpeningCards {
         if (MysticalSorenUtilities.hasItems(config.cards)) {
             return
         }
+        const exclude_regex = new RegExp(`^${this.EXCLUDE_PATTERN}$`, "gim")
         storyCards.forEach(storyCard => {
+            if (storyCard.entry.match(exclude_regex)) {
+                storyCard.entry = storyCard.entry.replace(exclude_regex, "")
+                storyCard.entry = storyCard.entry.trim()
+                return
+            }
             config.cards.push(storyCard.id)
         })
         MysticalSorenUtilities.setState(this.NAMESPACE, config)
@@ -61,18 +67,8 @@ class SorenOpeningCards {
         if (MysticalSorenUtilities.getState("AutoCards", { config: { doAC: false } }).config.doAC) {
             const queue = []
             const include_regex = new RegExp(`^${config.config.RegexLabel}: true$`, "gim")
-            const exclude_regex = new RegExp(`^${this.EXCLUDE_PATTERN}$`, "gim")
             storyCards.forEach(storyCard => {
                 if (storyCard.entry.startsWith("{title: ")) {
-                    return
-                }
-                if (storyCard.entry.match(exclude_regex)) {
-                    storyCard.entry = storyCard.entry.replace(exclude_regex, "")
-                    storyCard.entry = storyCard.entry.trim()
-                    const idx = config.cards.findIndex((id) => {
-                        return id === storyCard.id
-                    })
-                    config.cards.splice(idx, 1)
                     return
                 }
                 if (storyCard.entry.match(include_regex)) {
