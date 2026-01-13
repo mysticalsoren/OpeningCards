@@ -28,3 +28,5 @@ John is a courage warrior that excels in hand-to-hand combat. He lives in a humb
 
 RegexLabel: true // when set to true, convert to AutoCard
 ```
+# Developer Configuration
+* `SorenOpeningCards.EXCLUDE_PATTERN`: the regex pattern to exclude pre-defined cards from auto-converting. Default is `#AC_EXCLUDE`.

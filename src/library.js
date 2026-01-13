@@ -1,5 +1,6 @@
 class SorenOpeningCards {
     static NAMESPACE = "SorenOpeningCards"
+    static EXCLUDE_PATTERN = "#AC_EXCLUDE"
     static debug(msg) {
         log(`${this.NAMESPACE}: ${msg}`)
     }
@@ -59,12 +60,22 @@ class SorenOpeningCards {
         }
         if (MysticalSorenUtilities.getState("AutoCards", { config: { doAC: false } }).config.doAC) {
             const queue = []
-            const regex = new RegExp(`^${config.config.RegexLabel}: true$`, "gim")
+            const include_regex = new RegExp(`^${config.config.RegexLabel}: true$`, "gim")
+            const exclude_regex = new RegExp(`^${this.EXCLUDE_PATTERN}$`, "gim")
             storyCards.forEach(storyCard => {
                 if (storyCard.entry.startsWith("{title: ")) {
                     return
                 }
-                if (storyCard.entry.match(regex)) {
+                if (storyCard.entry.match(exclude_regex)) {
+                    storyCard.entry = storyCard.entry.replace(exclude_regex, "")
+                    storyCard.entry = storyCard.entry.trim()
+                    const idx = config.cards.findIndex((id) => {
+                        return id === storyCard.id
+                    })
+                    config.cards.splice(idx, 1)
+                    return
+                }
+                if (storyCard.entry.match(include_regex)) {
                     queue.push(storyCard)
                     return
                 }
@@ -75,7 +86,8 @@ class SorenOpeningCards {
             })
             while (queue.length > 0) {
                 const card = queue.shift()
-                card.entry = card.entry.replace(regex, "")
+                card.entry = card.entry.replace(include_regex, "")
+                card.entry = card.entry.trim()
                 const built = AutoCards().API.buildCard(card.title, card.entry, card.type, undefined, card.description, undefined)
                 if (built) {
                     const erased = AutoCards().API.eraseCard((searchCard) => {
