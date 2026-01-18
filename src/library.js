@@ -1,11 +1,9 @@
 class SorenOpeningCards {
     static NAMESPACE = "SorenOpeningCards"
+    static DEBUGGER = MysticalSorenUtilities.Debugger(this.NAMESPACE)
     static EXCLUDE_PATTERN = "#AC_EXCLUDE"
-    static debug(msg) {
-        log(`${this.NAMESPACE}: ${msg}`)
-    }
     static getConfig() {
-        return MysticalSorenUtilities.getState(this.NAMESPACE, {
+        return MysticalSorenUtilities.AIDungeon.getState(this.NAMESPACE, {
             cards: [],
             configId: -1,
             config: {
@@ -16,18 +14,18 @@ class SorenOpeningCards {
     static loadUserConfig() {
         const config = this.getConfig()
         const createConfigCard = () => {
-            const card = MysticalSorenUtilities.addStoryCard(`${this.NAMESPACE} Configuration`, JSON.stringify(config.config, (_, value) => {
+            const card = MysticalSorenUtilities.AIDungeon.addStoryCard(`${this.NAMESPACE} Configuration`, JSON.stringify(config.config, (_, value) => {
                 return value
             }, 1), "", "Configuration", "")
             config.configId = Number(card.id)
-            MysticalSorenUtilities.setState(this.NAMESPACE, config)
+            MysticalSorenUtilities.AIDungeon.setState(this.NAMESPACE, config)
             return card
         }
         if (config.configId === undefined || config.configId < 0) {
             createConfigCard()
             return config
         }
-        const idx = MysticalSorenUtilities.getStoryCardIndexById(config.configId)
+        const idx = MysticalSorenUtilities.AIDungeon.getStoryCardIndexById(config.configId)
         if (idx < 0) {
             createConfigCard()
             return config
@@ -35,7 +33,7 @@ class SorenOpeningCards {
         const card = storyCards[idx]
         try {
             config.config = JSON.parse(card.entry)
-            MysticalSorenUtilities.setState(this.NAMESPACE, config)
+            MysticalSorenUtilities.AIDungeon.setState(this.NAMESPACE, config)
         } catch (error) {
             removeStoryCard(idx)
             createConfigCard()
@@ -57,14 +55,14 @@ class SorenOpeningCards {
             }
             config.cards.push(storyCard.id)
         })
-        MysticalSorenUtilities.setState(this.NAMESPACE, config)
+        MysticalSorenUtilities.AIDungeon.setState(this.NAMESPACE, config)
     }
     static run(context = "") {
         const config = this.loadUserConfig()
         if (!MysticalSorenUtilities.hasItems(config.cards)) {
-            this.debug("OpeningCards must be initialed!")
+            this.DEBUGGER.log("OpeningCards must be initialed!")
         }
-        if (MysticalSorenUtilities.getState("AutoCards", { config: { doAC: false } }).config.doAC) {
+        if (MysticalSorenUtilities.AIDungeon.getState("AutoCards", { config: { doAC: false } }).config.doAC) {
             const queue = []
             const include_regex = new RegExp(`^${config.config.RegexLabel}: true$`, "gim")
             storyCards.forEach(storyCard => {
