@@ -1,9 +1,10 @@
 class SorenOpeningCards {
-    static NAMESPACE = "SorenOpeningCards"
-    static DEBUGGER = MysticalSorenUtilities.Debugger(this.NAMESPACE)
+    static get DEBUGGER() {
+        return MysticalSorenUtilities.Debugger(this.name)
+    }
     static EXCLUDE_PATTERN = "#AC_EXCLUDE"
     static getConfig() {
-        return MysticalSorenUtilities.AIDungeon.getState(this.NAMESPACE, {
+        return MysticalSorenUtilities.AIDungeon.getState(this.name, {
             cards: [],
             configId: -1,
             config: {
@@ -14,11 +15,11 @@ class SorenOpeningCards {
     static loadUserConfig() {
         const config = this.getConfig()
         const createConfigCard = () => {
-            const card = MysticalSorenUtilities.AIDungeon.addStoryCard(`${this.NAMESPACE} Configuration`, JSON.stringify(config.config, (_, value) => {
+            const card = MysticalSorenUtilities.AIDungeon.addStoryCard(`${this.name} Configuration`, JSON.stringify(config.config, (_, value) => {
                 return value
             }, 1), "", "Configuration", "")
             config.configId = Number(card.id)
-            MysticalSorenUtilities.AIDungeon.setState(this.NAMESPACE, config)
+            MysticalSorenUtilities.AIDungeon.setState(this.name, config)
             return card
         }
         if (config.configId === undefined || config.configId < 0) {
@@ -33,7 +34,7 @@ class SorenOpeningCards {
         const card = storyCards[idx]
         try {
             config.config = JSON.parse(card.entry)
-            MysticalSorenUtilities.AIDungeon.setState(this.NAMESPACE, config)
+            MysticalSorenUtilities.AIDungeon.setState(this.name, config)
         } catch (error) {
             removeStoryCard(idx)
             createConfigCard()
@@ -55,7 +56,7 @@ class SorenOpeningCards {
             }
             config.cards.push(storyCard.id)
         })
-        MysticalSorenUtilities.AIDungeon.setState(this.NAMESPACE, config)
+        MysticalSorenUtilities.AIDungeon.setState(this.name, config)
     }
     static run(context = "") {
         const config = this.loadUserConfig()
