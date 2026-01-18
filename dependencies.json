@@ -1,10 +1,10 @@
 {
     "MysticalSorenUtils": {
-        "git": "https://gitea.com/mysticalsoren/Utils.git",
-        "hash": "813ae9de5bb8b5cd8ed0144d56a3c84489635222"
+        "git": "https://github.com/mysticalsoren/Utilities.git",
+        "hash": "ed6f12a8acfd2ba590e71eda9197d7a8d752edee"
     },
     "Auto-Cards": {
         "git": "https://github.com/LewdLeah/Auto-Cards.git",
-        "hash": "a3a9c8373c2b4eff7f2c87be7a67bbb325cd334a"
+        "hash": "4f2bd77869992841e618c004019c3ee68c0a9f34"
     }
 }
