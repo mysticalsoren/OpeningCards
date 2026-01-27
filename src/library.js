@@ -15,9 +15,9 @@ class SorenOpeningCards {
     static loadUserConfig() {
         const config = this.getConfig()
         const createConfigCard = () => {
-            const card = MysticalSorenUtilities.AIDungeon.addStoryCard(`${this.name} Configuration`, JSON.stringify(config.config, (_, value) => {
+            const card = MysticalSorenUtilities.AIDungeon.addStoryCard(`${this.name} Configuration`, "", JSON.stringify(config.config, (_, value) => {
                 return value
-            }, 1), "", "Configuration", "")
+            }, 1), "configuration", "")
             config.configId = Number(card.id)
             MysticalSorenUtilities.AIDungeon.setState(this.name, config)
             return card
@@ -33,7 +33,7 @@ class SorenOpeningCards {
         }
         const card = storyCards[idx]
         try {
-            config.config = JSON.parse(card.entry)
+            config.config = JSON.parse(card.description)
             MysticalSorenUtilities.AIDungeon.setState(this.name, config)
         } catch (error) {
             removeStoryCard(idx)
