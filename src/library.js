@@ -78,6 +78,7 @@ class SorenOpeningCards {
         if (MysticalSorenUtilities.AIDungeon.getState("InnerSelf", { AC: { enabled: false } }).AC.enabled) {
             const queue = []
             const include_regex = new RegExp(`^${config.config.RegexLabel}: true$`, "gim")
+            let innerSelfStoryCard = null // to be removed when MainSettings.InnerSelf is respected through scripting.
             storyCards.forEach(storyCard => {
                 if (storyCard.entry.startsWith("{title: ")) {
                     return
@@ -86,11 +87,33 @@ class SorenOpeningCards {
                     queue.push(storyCard)
                     return
                 }
+                if (storyCard.title.match(/^Configure\s*Inner\s*Self\s*$/gim)) {
+                    innerSelfStoryCard = storyCard
+                }
                 if (config.cards.includes(storyCard.id)) {
                     queue.push(storyCard)
                     return
                 }
             })
+            if (innerSelfStoryCard) {
+                const t0 = /^>\s*Write.*priority:$/im
+                const match = t0.exec(innerSelfStoryCard.description)
+                if (match) {
+                    const characters = innerSelfStoryCard.description.substring(t0.lastIndex).trim().replace(/\n/g, ',')
+                    if (characters !== config.innerSelfCharacters) {
+                        config.innerSelfCharacters.split(',').forEach((IS_character) => {
+                            if (!characters.includes(IS_character)) {
+                                if (innerSelfStoryCard.description.endsWith('\n')) {
+                                    innerSelfStoryCard.description += `${IS_character}\n`
+                                    return
+                                }
+                                innerSelfStoryCard.description += `\n${IS_character}`
+                            }
+                        })
+                    }
+                }
+
+            }
             while (queue.length > 0) {
                 const card = queue.shift()
                 card.entry = card.entry.replace(include_regex, "")
