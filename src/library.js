@@ -9,7 +9,8 @@ class SorenOpeningCards {
             configId: -1,
             config: {
                 RegexLabel: "AutoCards?"
-            }
+            },
+            innerSelfCharacters: (typeof MainSettings.InnerSelf.IMPORTANT_SCENARIO_CHARACTERS == "string") ? MainSettings.InnerSelf.IMPORTANT_SCENARIO_CHARACTERS : ""
         })
     }
     static loadUserConfig() {
@@ -54,8 +55,19 @@ class SorenOpeningCards {
                 storyCard.entry = storyCard.entry.trim()
                 return
             }
+            if (config.innerSelfCharacters.includes(storyCard.title)) {
+                return
+            }
             config.cards.push(storyCard.id)
+            let space = storyCard.title.indexOf(' ')
+            space = space > -1 ? space : storyCard.title.length
+            config.innerSelfCharacters += `${storyCard.title.substring(0, space)},`
         })
+        if (config.innerSelfCharacters.endsWith(',')) {
+            config.innerSelfCharacters = config.innerSelfCharacters
+                .substring(0, config.innerSelfCharacters.length - 1)
+        }
+        MainSettings.InnerSelf.IMPORTANT_SCENARIO_CHARACTERS = config.innerSelfCharacters
         MysticalSorenUtilities.AIDungeon.setState(this.name, config)
     }
     static run(context = "") {
@@ -63,7 +75,7 @@ class SorenOpeningCards {
         if (!MysticalSorenUtilities.hasItems(config.cards)) {
             this.DEBUGGER.log("OpeningCards must be initialed!")
         }
-        if (MysticalSorenUtilities.AIDungeon.getState("AutoCards", { config: { doAC: false } }).config.doAC) {
+        if (MysticalSorenUtilities.AIDungeon.getState("InnerSelf", { AC: { enabled: false } }).AC.enabled) {
             const queue = []
             const include_regex = new RegExp(`^${config.config.RegexLabel}: true$`, "gim")
             storyCards.forEach(storyCard => {
@@ -114,7 +126,7 @@ class SorenOpeningCards {
     }
     static runAsOne(context = "") {
         this.initialize()
-        AutoCards(context, text, false)
+        InnerSelf(context)
         this.run(context)
     }
 }

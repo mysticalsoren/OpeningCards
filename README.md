@@ -1,11 +1,11 @@
 # OpeningCards
-An [Auto-Cards](https://github.com/LewdLeah/Auto-Cards) wrapper that automatically converts pre-defined story cards into AutoCards. It also supports manual conversion through editing entries of story cards.
+An [Inner-Self](https://github.com/LewdLeah/Inner-Self) wrapper that automatically converts pre-defined story cards into AutoCards. It also supports manual conversion through editing entries of story cards.
 # Implementation
 In `input.js`, `context.js`, `output.js`:
 ```js
 SorenOpeningCards.initialize() // Must always be on top.
 // Other libraries...
-AutoCards("input",text,false)
+InnerSelf("input")
 //  Other libraries...
 SorenOpeningCards.run()
 ```

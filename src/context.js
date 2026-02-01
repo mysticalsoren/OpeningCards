@@ -1,6 +1,6 @@
 function modifier() {
     SorenOpeningCards.initialize()
-    AutoCards("input", text, false)
+    InnerSelf("context")
     SorenOpeningCards.run()
     return { text: text, stop: false }
 }
