@@ -2,13 +2,71 @@ class SorenOpeningCards {
     static get DEBUGGER() {
         return MysticalSorenUtilities.Debugger(this.name)
     }
-    static EXCLUDE_PATTERN = "#AC_EXCLUDE"
+    static EXCLUDE_PATTERN = "(?:#AC_EXCLUDE)|(?:#IS_EXCLUDE)"
+    static InnerSelfUtilities = {
+        getStoryCard() {
+            for (const storyCard of storyCards) {
+                if (storyCard.title.match(/^Configure\s*Inner\s*Self\s*$/gim)) {
+                    return storyCard
+                }
+            }
+            return null
+        },
+        getStoryCardCharacters(innerSelfStoryCard = this.getStoryCard()) {
+            if (!MysticalSorenUtilities.hasKeys(innerSelfStoryCard)) {
+                SorenOpeningCards.DEBUGGER.log("Could not get characters as Inner-Self Story Card is empty!")
+                return
+            }
+            const t0 = /^>\s*.+$/gm // /^>\s*Write.*priority:$/im
+            let t1 = t0.lastIndex
+            do {
+                t0.exec(innerSelfStoryCard.description)
+                t1 = t0.lastIndex > t1 ? t0.lastIndex : t1
+            } while (t0.lastIndex === t1);
+            if (t1 > 0) {
+                return innerSelfStoryCard.description.substring(t1).trim().replace(/\n/g, ',')
+            }
+        },
+        addEntry(innerSelfStoryCard = this.getStoryCard(), characterNames = "") {
+            if (!MysticalSorenUtilities.hasKeys(innerSelfStoryCard)) {
+                SorenOpeningCards.DEBUGGER.log("Could not add entry as Inner-Self Story Card is empty!")
+                return
+            }
+            if (characterNames === "") {
+                SorenOpeningCards.DEBUGGER.log("Could not add entry as the name to be added is empty!")
+            }
+
+            const characters = this.getStoryCardCharacters(innerSelfStoryCard)
+            if (typeof characters == "string") {
+                if (characters !== characterNames) {
+                    characterNames.split(',').forEach((characterName) => {
+                        if (!characters.includes(characterName)) {
+                            if (innerSelfStoryCard.description.endsWith('\n')) {
+                                innerSelfStoryCard.description += `${characterName}\n`
+                                return
+                            }
+                            innerSelfStoryCard.description += `\n${characterName}`
+                        }
+                    })
+                }
+            }
+        },
+        getFirstName(storyCard = {}) {
+            if (!MysticalSorenUtilities.hasKeys(storyCard)) {
+                SorenOpeningCards.DEBUGGER.log("Could not get first name as the given story card is empty!")
+                return
+            }
+            let space = storyCard.title.indexOf(' ')
+            space = space > -1 ? space : storyCard.title.length
+            return storyCard.title.substring(0, space)
+        }
+    }
     static getConfig() {
         return MysticalSorenUtilities.AIDungeon.getState(this.name, {
             cards: [],
             configId: -1,
             config: {
-                RegexLabel: "AutoCards?"
+                RegexLabel: "(?:AutoCards?)|(?:InnerSelf)"
             },
             innerSelfCharacters: (typeof MainSettings.InnerSelf.IMPORTANT_SCENARIO_CHARACTERS == "string") ? MainSettings.InnerSelf.IMPORTANT_SCENARIO_CHARACTERS : ""
         })
@@ -59,9 +117,7 @@ class SorenOpeningCards {
                 return
             }
             config.cards.push(storyCard.id)
-            let space = storyCard.title.indexOf(' ')
-            space = space > -1 ? space : storyCard.title.length
-            config.innerSelfCharacters += `${storyCard.title.substring(0, space)},`
+            config.innerSelfCharacters += `${this.InnerSelfUtilities.getFirstName(storyCard)},`
         })
         if (config.innerSelfCharacters.endsWith(',')) {
             config.innerSelfCharacters = config.innerSelfCharacters
@@ -96,23 +152,7 @@ class SorenOpeningCards {
                 }
             })
             if (innerSelfStoryCard) {
-                const t0 = /^>\s*Write.*priority:$/im
-                const match = t0.exec(innerSelfStoryCard.description)
-                if (match) {
-                    const characters = innerSelfStoryCard.description.substring(t0.lastIndex).trim().replace(/\n/g, ',')
-                    if (characters !== config.innerSelfCharacters) {
-                        config.innerSelfCharacters.split(',').forEach((IS_character) => {
-                            if (!characters.includes(IS_character)) {
-                                if (innerSelfStoryCard.description.endsWith('\n')) {
-                                    innerSelfStoryCard.description += `${IS_character}\n`
-                                    return
-                                }
-                                innerSelfStoryCard.description += `\n${IS_character}`
-                            }
-                        })
-                    }
-                }
-
+                this.InnerSelfUtilities.addEntry(innerSelfStoryCard, config.innerSelfCharacters)
             }
             while (queue.length > 0) {
                 const card = queue.shift()
@@ -128,10 +168,16 @@ class SorenOpeningCards {
                     }, false)
                     if (erased) {
                         AutoCards().API.setCardAsAuto(built, true)
+                        if (innerSelfStoryCard) {
+                            this.InnerSelfUtilities.addEntry(innerSelfStoryCard, this.InnerSelfUtilities.getFirstName(card))
+                        }
                         continue
                     }
                 }
                 AutoCards().API.setCardAsAuto(card, true)
+                if (innerSelfStoryCard) {
+                    this.InnerSelfUtilities.addEntry(innerSelfStoryCard, this.InnerSelfUtilities.getFirstName(card))
+                }
             }
         }
         /*

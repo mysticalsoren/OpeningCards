@@ -21,7 +21,7 @@ SorenOpeningCards.runAsOne("context")
 SorenOpeningCards.runAsOne("output")
 ```
 # Configuration
-* `RegexLabel`: The key label trigger that will manually convert a storyCard to an AutoCard when the given value is `true`. The default is `AutoCards?`.
+* `RegexLabel`: The key label trigger that will manually convert a storyCard to an AutoCard when the given value is `true`. The default is `AutoCards?` or `InnerSelf`. Either option will do the same regardless of naming scheme.
 ```js
 // John the Warrior
 John is a courage warrior that excels in hand-to-hand combat. He lives in a humble cabin.
@@ -29,4 +29,4 @@ John is a courage warrior that excels in hand-to-hand combat. He lives in a humb
 RegexLabel: true // when set to true, convert to AutoCard
 ```
 # Developer Configuration
-* `SorenOpeningCards.EXCLUDE_PATTERN`: the regex pattern to exclude pre-defined cards from auto-converting. Default is `#AC_EXCLUDE`.
+* `SorenOpeningCards.EXCLUDE_PATTERN`: the regex pattern to exclude pre-defined cards from auto-converting. Default is `#AC_EXCLUDE` or `#IS_EXCLUDE`.
