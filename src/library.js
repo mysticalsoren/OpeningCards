@@ -17,14 +17,15 @@ class SorenOpeningCards {
                 SorenOpeningCards.DEBUGGER.log("Could not get characters as Inner-Self Story Card is empty!")
                 return
             }
-            const t0 = /^>\s*.+$/gm // /^>\s*Write.*priority:$/im
-            let t1 = t0.lastIndex
+            const innerSelfComment = /^>\s*.+$/gm // /^>\s*Write.*priority:$/im
+            let idx = innerSelfComment.lastIndex
+            let match = null
             do {
-                t0.exec(innerSelfStoryCard.description)
-                t1 = t0.lastIndex > t1 ? t0.lastIndex : t1
-            } while (t0.lastIndex === t1);
-            if (t1 > 0) {
-                return innerSelfStoryCard.description.substring(t1).trim().replace(/\n/g, ',')
+                match = innerSelfComment.exec(innerSelfStoryCard.description)
+                idx = innerSelfComment.lastIndex > idx ? innerSelfComment.lastIndex : idx
+            } while (match !== null);
+            if (idx > 0) {
+                return innerSelfStoryCard.description.substring(idx).trim().replace(/\n/g, ',')
             }
         },
         addEntry(innerSelfStoryCard = this.getStoryCard(), characterNames = "") {
