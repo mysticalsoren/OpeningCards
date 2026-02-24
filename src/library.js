@@ -300,10 +300,27 @@ class SorenOpeningCards {
     /**
      * Runs OpeningCards as well as InnerSelf.
      * @param {"input" | "context" | "output"} context
+     * @deprecated Will be removed due to hybrid model of potential developer error that wishes to only install AutoCards.
      */
     static runAsOne(context = "") {
+        this.runAsOneInnerSelf(context)
+    }
+    /**
+     * Runs OpeningCards as well as InnerSelf.
+     * @param {"input" | "context" | "output"} context
+     */
+    static runAsOneInnerSelf(context = "") {
         this.initialize()
         InnerSelf(context)
+        this.run(context)
+    }
+    /**
+     * Runs OpeningCards as well as AutoCards.
+     * @param {"input" | "context" | "output"} context
+     */
+    static runAsOneAutoCards(context = "") {
+        this.initialize()
+        AutoCards(context, text, false)
         this.run(context)
     }
 }
