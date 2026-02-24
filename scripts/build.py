@@ -44,7 +44,9 @@ def file_has_contents(path: str) -> bool:
 def run_git(git_repository: str, git_args: str) -> subprocess.CompletedProcess:
     CWD = os.getcwd()
     os.chdir(git_repository)
-    process = subprocess.run(f'git {git_args}',stdout=subprocess.PIPE,text=True,timeout=5)
+    command = ["git"]
+    command.extend(git_args.split(" "))
+    process = subprocess.run(command,stdout=subprocess.PIPE,text=True,timeout=5)
     os.chdir(CWD)
     return process
 
