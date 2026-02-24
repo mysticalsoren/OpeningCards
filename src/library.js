@@ -80,6 +80,18 @@ class SorenOpeningCards {
             let space = storyCard.title.indexOf(' ')
             space = space > -1 ? space : storyCard.title.length
             return storyCard.title.substring(0, space)
+        },
+        /**
+         * Whether InnerSelf is enabled.
+         * @param {StoryCard} innerSelfStoryCard The InnerSelf StoryCard
+         * @returns {boolean}
+         */
+        isEnabled(innerSelfStoryCard = this.getStoryCard()) {
+            if (!MysticalSorenUtilities.hasKeys(innerSelfStoryCard)) {
+                SorenOpeningCards.DEBUGGER.log("Could not add entry as Inner-Self Story Card is empty!")
+                return false
+            }
+            return innerSelfStoryCard.entry.match(/^>\s*Enable.*Inner.?Self\s*:\s*true\s*$/im) ? true : false
         }
     }
     /**
@@ -183,7 +195,44 @@ class SorenOpeningCards {
         if (!MysticalSorenUtilities.hasItems(config.cards)) {
             this.DEBUGGER.log("OpeningCards must be initialed!")
         }
-        if (MysticalSorenUtilities.AIDungeon.getState("InnerSelf", { AC: { enabled: false } }).AC.enabled) {
+        // #region InnerSelf Config typedef reference
+        /**
+         * Validated config settings for Inner Self
+         * Default settings are specified by creators at the scenario level
+         * Runtime settings are specified by players at the adventure level
+         * @typedef {Object} InnerSelfConfig
+         * @property {Object|null} card - Config card object reference
+         * @property {boolean} allow - Is Inner Self enabled?
+         * @property {string} player - The player character's name
+         * @property {number} pov - Is the adventure in 1st, 2nd, or 3rd person?
+         * @property {boolean} guide - Show a detailed guide
+         * @property {number} percent - Default percentage of Recent Story context length reserved for agent brains
+         * @property {number} distance - Number of previous actions to look back for agent name triggers
+         * @property {string} indicator - The visual indicator symbol used to display active brains
+         * @property {number} chance - Likelihood of performing a standard thought formation task each turn
+         * @property {boolean} half - Is the thought formation chance reduced by half during Do/Say/Story turns?
+         * @property {boolean} json - Is raw JSON syntax used to serialize NPC brains in their card notes?
+         * @property {boolean} debug - Is debug mode enabled for inline task output visibility?
+         * @property {boolean} pin - Is the config card pinned near the top of the list?
+         * @property {boolean} auto - Is Auto-Cards enabled?
+         * @property {string[]} agents - All agent names, ordered from highest to lowest trigger priority
+         */
+        // #endregion
+        // #region AutoCard Config typedef reference
+        /*
+        config: [
+            "doAC", "deleteAllAutoCards", "pinConfigureCard", "addCardCooldown", "bulletedListMode", "defaultEntryLimit", "defaultCardsDoMemoryUpdates", "defaultMemoryLimit", "memoryCompressionRatio", "ignoreAllCapsTitles", "readFromInputs", "minimumLookBackDistance", "LSIv2", "showDebugData", "generationPrompt", "compressionPrompt", "defaultCardType"
+        ],
+        */
+        // #endregion
+
+        const isInnerSelfEnabled = MysticalSorenUtilities.AIDungeon.getState("InnerSelf", { allow: false }).allow || this.InnerSelfUtilities.isEnabled()
+        const isAutoCardsEnabled = (
+            MysticalSorenUtilities.AIDungeon.getState("AutoCards", { config: { doAC: false } }).config.doAC ||
+            MysticalSorenUtilities.AIDungeon.getState("InnerSelf", { AC: { enabled: false } }).AC.enabled ||
+            MysticalSorenUtilities.AIDungeon.getState("InnerSelf", { auto: false }).auto
+        )
+        if (isInnerSelfEnabled || isAutoCardsEnabled) {
             const queue = []
             const include_regex = new RegExp(`^${config.config.RegexLabel}: true$`, "gim")
             let innerSelfStoryCard = null // to be removed when MainSettings.InnerSelf is respected through scripting.
@@ -197,37 +246,40 @@ class SorenOpeningCards {
                 }
                 if (storyCard.title.match(/^Configure\s*Inner\s*Self\s*$/gim)) {
                     innerSelfStoryCard = storyCard
+                    return
                 }
                 if (config.cards.includes(storyCard.id)) {
                     queue.push(storyCard)
                     return
                 }
             })
-            if (innerSelfStoryCard) {
+            if (isInnerSelfEnabled && innerSelfStoryCard) {
                 this.InnerSelfUtilities.addEntry(innerSelfStoryCard, config.innerSelfCharacters)
             }
             while (queue.length > 0) {
                 const card = queue.shift()
                 card.entry = card.entry.replace(include_regex, "")
                 card.entry = card.entry.trim()
-                const built = AutoCards().API.buildCard(card.title, card.entry, card.type, undefined, card.description, undefined)
-                if (built) {
-                    const erased = AutoCards().API.eraseCard((searchCard) => {
-                        if (searchCard === card) {
-                            return true
+                if (isAutoCardsEnabled) {
+                    const built = AutoCards().API.buildCard(card.title, card.entry, card.type, undefined, card.description, undefined)
+                    if (built) {
+                        const erased = AutoCards().API.eraseCard((searchCard) => {
+                            if (searchCard === card) {
+                                return true
+                            }
+                            return false
+                        }, false)
+                        if (erased) {
+                            AutoCards().API.setCardAsAuto(built, true)
+                            if (isInnerSelfEnabled && innerSelfStoryCard) {
+                                this.InnerSelfUtilities.addEntry(innerSelfStoryCard, this.InnerSelfUtilities.getFirstName(card))
+                            }
+                            continue
                         }
-                        return false
-                    }, false)
-                    if (erased) {
-                        AutoCards().API.setCardAsAuto(built, true)
-                        if (innerSelfStoryCard) {
-                            this.InnerSelfUtilities.addEntry(innerSelfStoryCard, this.InnerSelfUtilities.getFirstName(card))
-                        }
-                        continue
                     }
+                    AutoCards().API.setCardAsAuto(card, true)
                 }
-                AutoCards().API.setCardAsAuto(card, true)
-                if (innerSelfStoryCard) {
+                if (isInnerSelfEnabled && innerSelfStoryCard) {
                     this.InnerSelfUtilities.addEntry(innerSelfStoryCard, this.InnerSelfUtilities.getFirstName(card))
                 }
             }
