@@ -98,7 +98,7 @@ class SorenOpeningCards {
          * @returns {boolean} Boolean.
          */
         get isInstalled() {
-            return (globalThis.MainSettings && globalThis.MainSettings.InnerSelf)
+            return (typeof globalThis.InnerSelf === "function")
         }
     }
     /**
