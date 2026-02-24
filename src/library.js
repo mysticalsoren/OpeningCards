@@ -4,6 +4,10 @@ class SorenOpeningCards {
     }
     static EXCLUDE_PATTERN = "(?:#AC_EXCLUDE)|(?:#IS_EXCLUDE)"
     static InnerSelfUtilities = {
+        /**
+         * Returns a StoryCard matching the internal Regex on the StoryCard's title property.
+         * @returns {StoryCard} StoryCard. The InnerSelf StoryCard
+         */
         getStoryCard() {
             for (const storyCard of storyCards) {
                 if (storyCard.title.match(/^Configure\s*Inner\s*Self\s*$/gim)) {
@@ -12,6 +16,11 @@ class SorenOpeningCards {
             }
             return null
         },
+        /**
+         * Gets the characters from the InnerSelf StoryCard.
+         * @param {StoryCard} innerSelfStoryCard The InnerSelf StoryCard. If left empty, it will default to the InnerSelfUtilities.getStoryCard()
+         * @returns {String?} String?. A comma-separated string of characters found in InnerSelf StoryCard. 
+         */
         getStoryCardCharacters(innerSelfStoryCard = this.getStoryCard()) {
             if (!MysticalSorenUtilities.hasKeys(innerSelfStoryCard)) {
                 SorenOpeningCards.DEBUGGER.log("Could not get characters as Inner-Self Story Card is empty!")
@@ -28,6 +37,12 @@ class SorenOpeningCards {
                 return innerSelfStoryCard.description.substring(idx).trim().replace(/\n/g, ',')
             }
         },
+        /**
+         * Adds characters to the InnerSelf StoryCard if not already existing.
+         * @param {StoryCard} innerSelfStoryCard The InnerSelf StoryCard. If left empty, it will default to the InnerSelfUtilities.getStoryCard()
+         * @param {String} characterNames a comma-separated list of first names to be added into the InnerSelf StoryCard
+         * @returns {void}
+         */
         addEntry(innerSelfStoryCard = this.getStoryCard(), characterNames = "") {
             if (!MysticalSorenUtilities.hasKeys(innerSelfStoryCard)) {
                 SorenOpeningCards.DEBUGGER.log("Could not add entry as Inner-Self Story Card is empty!")
@@ -52,7 +67,12 @@ class SorenOpeningCards {
                 }
             }
         },
-        getFirstName(storyCard = {}) {
+        /**
+         * Gets the first name of a StoryCard by stopping at the first leftmost space character.
+         * @param {StoryCard} storyCard The StoryCard to get the first name of
+         * @returns {String} String. A substring of the StoryCard.title
+         */
+        getFirstName(storyCard) {
             if (!MysticalSorenUtilities.hasKeys(storyCard)) {
                 SorenOpeningCards.DEBUGGER.log("Could not get first name as the given story card is empty!")
                 return
@@ -62,6 +82,21 @@ class SorenOpeningCards {
             return storyCard.title.substring(0, space)
         }
     }
+    /**
+     * @typedef SorenOpeningCardsUserConfiguration
+     * @property {string} RegexLabel the manual conversion pattern
+     */
+    /**
+     * @typedef SorenOpeningCardsConfiguration
+     * @property {Array<String>} cards a list of StoryCard IDs during initiation. StoryCards in here are considered "OpeningCards".
+     * @property {Number} configId Configuration StoryCard ID
+     * @property {SorenOpeningCardsUserConfiguration} config the User's configuration
+     * @property {string} innerSelfCharacters InnerSelf's comma-separated character(s) string
+     */
+    /**
+     * Generates or gets the configuration from state.
+     * @returns {SorenOpeningCardsConfiguration}
+     */
     static getConfig() {
         return MysticalSorenUtilities.AIDungeon.getState(this.name, {
             cards: [],
@@ -72,6 +107,10 @@ class SorenOpeningCards {
             innerSelfCharacters: (typeof MainSettings.InnerSelf.IMPORTANT_SCENARIO_CHARACTERS == "string") ? MainSettings.InnerSelf.IMPORTANT_SCENARIO_CHARACTERS : ""
         })
     }
+    /**
+     * Loads and updates state to respect user's configuration.
+     * @returns {SorenOpeningCardsConfiguration} Object. The updated configuration with respect to the user's choices.
+     */
     static loadUserConfig() {
         const config = this.getConfig()
         const createConfigCard = () => {
@@ -102,6 +141,14 @@ class SorenOpeningCards {
         }
         return config
     }
+    /**
+     * Gets all the StoryCards present at the current turn order and puts them into a queue for conversion.
+     * 
+     * StoryCards with the `SorenOpeningCards.EXCLUDE_PATTERN` in its content will be excluded from the queue.
+     * 
+     * Note: This function only runs once.
+     * @returns {void}
+     */
     static initialize() {
         const config = this.getConfig()
         if (MysticalSorenUtilities.hasItems(config.cards)) {
@@ -127,7 +174,11 @@ class SorenOpeningCards {
         MainSettings.InnerSelf.IMPORTANT_SCENARIO_CHARACTERS = config.innerSelfCharacters
         MysticalSorenUtilities.AIDungeon.setState(this.name, config)
     }
-    static run(context = "") {
+    /**
+     * Converts StoryCards currently in queue or matches the pattern found in the User's Configuration.
+     * @param {"input" | "context" | "output"} context Is it running in "input" or {...} mode? Unimplemented for now.
+     */
+    static run(context = "" /* May be removed */) {
         const config = this.loadUserConfig()
         if (!MysticalSorenUtilities.hasItems(config.cards)) {
             this.DEBUGGER.log("OpeningCards must be initialed!")
@@ -194,6 +245,10 @@ class SorenOpeningCards {
         }
         */
     }
+    /**
+     * Runs OpeningCards as well as InnerSelf.
+     * @param {"input" | "context" | "output"} context
+     */
     static runAsOne(context = "") {
         this.initialize()
         InnerSelf(context)
