@@ -92,6 +92,16 @@ class SorenOpeningCards {
                 return false
             }
             return innerSelfStoryCard.entry.match(/^>\s*Enable.*Inner.?Self\s*:\s*true\s*$/im) ? true : false
+        },
+        /**
+         * Whether InnerSelf is installed.
+         * @returns {boolean} Boolean.
+         */
+        get isInstalled() {
+            return (
+                MysticalSorenUtilities.hasItems(globalThis.MainSettings) &&
+                MysticalSorenUtilities.hasItems(globalThis.MainSettings.InnerSelf)
+            )
         }
     }
     /**
@@ -116,7 +126,9 @@ class SorenOpeningCards {
             config: {
                 RegexLabel: "(?:AutoCards?)|(?:InnerSelf)"
             },
-            innerSelfCharacters: (typeof MainSettings.InnerSelf.IMPORTANT_SCENARIO_CHARACTERS == "string") ? MainSettings.InnerSelf.IMPORTANT_SCENARIO_CHARACTERS : ""
+            innerSelfCharacters: (
+                this.InnerSelfUtilities.isInstalled &&
+                typeof globalThis.MainSettings.InnerSelf.IMPORTANT_SCENARIO_CHARACTERS == "string") ? globalThis.MainSettings.InnerSelf.IMPORTANT_SCENARIO_CHARACTERS : ""
         })
     }
     /**
@@ -177,13 +189,18 @@ class SorenOpeningCards {
                 return
             }
             config.cards.push(storyCard.id)
-            config.innerSelfCharacters += `${this.InnerSelfUtilities.getFirstName(storyCard)},`
+            if (this.InnerSelfUtilities.isInstalled) {
+                config.innerSelfCharacters += `${this.InnerSelfUtilities.getFirstName(storyCard)},`
+            }
         })
         if (config.innerSelfCharacters.endsWith(',')) {
             config.innerSelfCharacters = config.innerSelfCharacters
                 .substring(0, config.innerSelfCharacters.length - 1)
         }
-        MainSettings.InnerSelf.IMPORTANT_SCENARIO_CHARACTERS = config.innerSelfCharacters
+        if (this.InnerSelfUtilities.isInstalled) {
+            globalThis.MainSettings.InnerSelf.IMPORTANT_SCENARIO_CHARACTERS = config.innerSelfCharacters
+        }
+
         MysticalSorenUtilities.AIDungeon.setState(this.name, config)
     }
     /**
