@@ -315,7 +315,7 @@ class SorenOpeningCards {
         */
     }
     /**
-     * Runs OpeningCards as well as InnerSelf.
+     * Runs OpeningCards as well as either InnerSelf or AutoCards.
      * @param {"input" | "context" | "output"} context
      */
     static runAsOne(context = "") {
