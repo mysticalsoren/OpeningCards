@@ -317,14 +317,17 @@ class SorenOpeningCards {
     /**
      * Runs OpeningCards as well as InnerSelf.
      * @param {"input" | "context" | "output"} context
-     * @deprecated Will be removed due to hybrid model of potential developer error that wishes to only install AutoCards.
      */
     static runAsOne(context = "") {
-        this.runAsOneInnerSelf(context)
+        if (this.InnerSelfUtilities.isInstalled) {
+            return this.runAsOneInnerSelf(context)
+        }
+        return this.runAsOneAutoCards(context)
     }
     /**
      * Runs OpeningCards as well as InnerSelf.
      * @param {"input" | "context" | "output"} context
+     * @returns {void}
      */
     static runAsOneInnerSelf(context = "") {
         this.initialize()
@@ -334,6 +337,7 @@ class SorenOpeningCards {
     /**
      * Runs OpeningCards as well as AutoCards.
      * @param {"input" | "context" | "output"} context
+     * @returns {void}
      */
     static runAsOneAutoCards(context = "") {
         this.initialize()
