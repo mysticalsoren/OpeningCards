@@ -98,10 +98,7 @@ class SorenOpeningCards {
          * @returns {boolean} Boolean.
          */
         get isInstalled() {
-            return (
-                MysticalSorenUtilities.hasItems(globalThis.MainSettings) &&
-                MysticalSorenUtilities.hasItems(globalThis.MainSettings.InnerSelf)
-            )
+            return (globalThis.MainSettings && globalThis.MainSettings.InnerSelf)
         }
     }
     /**
