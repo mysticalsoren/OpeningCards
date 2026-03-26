@@ -1,4 +1,6 @@
 # OpeningCards
+> \> [library.js](./out/library.js)
+
 An [Inner-Self](https://github.com/LewdLeah/Inner-Self) or [AutoCards](https://github.com/LewdLeah/Auto-Cards) wrapper that
 * Automatically converts **pre-made** story cards into AutoCards (AC).
 * Automatically sets **pre-made** character names into Inner-Self (IS).
