@@ -7,7 +7,7 @@ An [Inner-Self](https://github.com/LewdLeah/Inner-Self) or [AutoCards](https://g
 *Pre-made story cards are cards created on the start of a new scenario. Any subsequent cards made during an adventure will not be automatically converted.*
 # Implementation
 ### Inner Self
-In `input.js`, `context.js`, `output.js`:
+In [`input.js`](./out/input.js), [`context.js`](./out/context.js), [`output.js`](./out/output.js):
 ```js
 SorenOpeningCards.initialize() // Must always be on top.
 // Other libraries...
