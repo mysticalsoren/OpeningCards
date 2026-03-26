@@ -53,5 +53,17 @@ InnerSelf: true
 aUtOcArD: true // Capitation doesn't matter.
 iNnErSeLf: true
 ```
+# InnerSelf Utility Functions
+### SorenOpeningCards.InnerSelfUtilities.setPlayerName(string)
+> [Line 111](./src/library.js#L111)
+
+Sets the player's name in the InnerSelf StoryCard. Must be ran before `SorenOpeningCards.initialize()`.
+```javascript
+SorenOpeningCards.InnerSelfUtilities.setPlayerName("playerName")
+<....>
+SorenOpeningCards.initialize()
+<...>
+```
+
 # Developer Configuration
 * `SorenOpeningCards.EXCLUDE_PATTERN`: the regex pattern to exclude pre-defined cards from auto-converting. Default is `#AC_EXCLUDE` or `#IS_EXCLUDE`.

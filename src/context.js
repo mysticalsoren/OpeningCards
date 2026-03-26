@@ -1,4 +1,5 @@
 function modifier() {
+    // SorenOpeningCards.InnerSelfUtilities.setPlayerName("playerName")
     SorenOpeningCards.initialize()
     InnerSelf("context")
     SorenOpeningCards.run()

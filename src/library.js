@@ -3,6 +3,9 @@ class SorenOpeningCards {
         return MysticalSorenUtilities.Debugger(this.name)
     }
     static EXCLUDE_PATTERN = "(?:#AC_EXCLUDE)|(?:#IS_EXCLUDE)"
+    /**
+     * A class for managing InnerSelf
+     */
     static InnerSelfUtilities = {
         /**
          * Returns a StoryCard matching the internal Regex on the StoryCard's title property.
@@ -99,6 +102,24 @@ class SorenOpeningCards {
          */
         get isInstalled() {
             return (typeof globalThis.InnerSelf === "function")
+        },
+        /**
+         * Sets the player name in the InnerSelf Card
+         * @param {StoryCard} innerSelfStoryCard the InnerSelf StoryCard
+         * @param {string} playerName the name of the player
+         * @returns {boolean} Whether it was successful.
+         */
+        setPlayerName(playerName = "Example", innerSelfStoryCard = this.getStoryCard()) {
+            const config = SorenOpeningCards.getConfig()
+            if (MysticalSorenUtilities.hasItems(config.cards)) {
+                return false
+            }
+            if (!MysticalSorenUtilities.hasKeys(innerSelfStoryCard)) {
+                SorenOpeningCards.DEBUGGER.log("Could not add entry as Inner-Self Story Card is empty!")
+                return false
+            }
+            innerSelfStoryCard.entry = innerSelfStoryCard.entry.replace(/(>\s*First\s*name\s*of\s*player\s*character:\s*")[^"]*("\s*)/, `$1${playerName}$2`)
+            return true
         }
     }
     /**
