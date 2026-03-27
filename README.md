@@ -57,7 +57,7 @@ iNnErSeLf: true
 ```
 # InnerSelf Utility Functions
 ### SorenOpeningCards.InnerSelfUtilities.setPlayerName(string)
-> [Line 111](./src/library.js#L111)
+> [Line 112](./src/library.js#L112)
 
 Sets the player's name in the InnerSelf StoryCard. Must be ran after `InnerSelf()`.
 
