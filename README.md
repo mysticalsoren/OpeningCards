@@ -60,9 +60,11 @@ iNnErSeLf: true
 > [Line 111](./src/library.js#L111)
 
 Sets the player's name in the InnerSelf StoryCard. Must be ran after `InnerSelf()`.
+
+In [`context.js`](./out/context.js) or [`output.js`](./out/output.js):
 ```javascript
 SorenOpeningCards.initialize()
-InnerSelf("input")
+InnerSelf("context")
 SorenOpeningCards.InnerSelfUtilities.setPlayerName("playerName")
 SorenOpeningCards.run()
 ```

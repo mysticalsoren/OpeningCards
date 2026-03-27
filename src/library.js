@@ -110,10 +110,6 @@ class SorenOpeningCards {
          * @returns {boolean} Whether it was successful.
          */
         setPlayerName(playerName = "Example", innerSelfStoryCard = this.getStoryCard()) {
-            const config = SorenOpeningCards.getConfig()
-            if (MysticalSorenUtilities.hasItems(config.cards)) {
-                return false
-            }
             if (!MysticalSorenUtilities.hasKeys(innerSelfStoryCard)) {
                 SorenOpeningCards.DEBUGGER.log("Could not add entry as Inner-Self Story Card is empty!")
                 return false
@@ -121,7 +117,7 @@ class SorenOpeningCards {
             innerSelfStoryCard.entry = innerSelfStoryCard.entry.replace(
                 /^(>\s*First\s*name\s*of\s*player\s*character:\s*")([^"]*)("\s*)$/m,
                 (match, g1, currentName, g3) => {
-                    if (currentName === "Example" || currentName.length === 0 || currentName.match(/^\s+$/)) {
+                    if (currentName.toLowerCase() === "example" || currentName.length === 0 || currentName.match(/^\s+$/)) {
                         return `${g1}${playerName}${g3}`
                     }
                 })
