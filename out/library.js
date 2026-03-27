@@ -147,7 +147,13 @@ class SorenOpeningCards {
                 SorenOpeningCards.DEBUGGER.log("Could not add entry as Inner-Self Story Card is empty!")
                 return false
             }
-            innerSelfStoryCard.entry = innerSelfStoryCard.entry.replace(/(>\s*First\s*name\s*of\s*player\s*character:\s*")[^"]*("\s*)/, `$1${playerName}$2`)
+            innerSelfStoryCard.entry = innerSelfStoryCard.entry.replace(
+                /^(>\s*First\s*name\s*of\s*player\s*character:\s*")([^"]*)("\s*)$/m,
+                (match, g1, currentName, g3) => {
+                    if (currentName === "Example" || currentName.length === 0 || currentName.match(/^\s+$/)) {
+                        return `${g1}${playerName}${g3}`
+                    }
+                })
             return true
         }
     }
