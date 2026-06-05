@@ -218,7 +218,7 @@ class SorenOpeningCards {
         const createConfigCard = () => {
             const card = MysticalSorenUtilities.AIDungeon.addStoryCard(`${this.name} Configuration`, "", JSON.stringify(config.config, (_, value) => {
                 return value
-            }, 1), "configuration", "")
+            }, 1), "Configuration", "")
             config.configId = Number(card.id)
             MysticalSorenUtilities.AIDungeon.setState(this.name, config)
             return card
@@ -256,6 +256,9 @@ class SorenOpeningCards {
         if (MysticalSorenUtilities.hasItems(config.cards)) {
             return
         }
+        if (config.cards.length > 0) {
+            return
+        }
         const exclude_regex = new RegExp(`^${this.EXCLUDE_PATTERN}$`, "gim")
         storyCards.forEach(storyCard => {
             if (storyCard.entry.match(exclude_regex)) {
@@ -264,6 +267,9 @@ class SorenOpeningCards {
                 return
             }
             if (config.innerSelfCharacters.includes(storyCard.title)) {
+                return
+            }
+            if (`${config.configId}` === storyCard.id) {
                 return
             }
             config.cards.push(storyCard.id)
