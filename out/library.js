@@ -9580,7 +9580,7 @@ function AutoCards(inHook, inText, inStop) {
      * @returns {Object}
      */
     getState(stateName, alternative = {}) {
-      alternative = !MysticalSorenUtilities.isPlainObject(alternative) ? alternative : {}
+      alternative = MysticalSorenUtilities.isPlainObject(alternative) ? alternative : {}
       if (typeof stateName !== "string") {
         MysticalSorenUtilities.#Private.Debugger.log(`\
           Couldn't get state. The name isn't type of "string", found "${typeof stateName}. Returning with alternative..."\
