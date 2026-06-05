@@ -33,6 +33,7 @@ class SorenOpeningCards {
             }
             if (!innerSelfStoryCard) { return null; }
             if (!innerSelfStoryCard["description"]) { return null; }
+            if (!innerSelfStoryCard["entry"]) { return null; }
             return innerSelfStoryCard
         },
         /**
@@ -140,7 +141,7 @@ class SorenOpeningCards {
                 return false
             }
             if (!innerSelfStoryCard) { return false }
-            innerSelfStoryCard.description = innerSelfStoryCard.description.replace(
+            innerSelfStoryCard.entry = innerSelfStoryCard.entry.replace(
                 /^(>\s*First\s*name\s*of\s*player\s*character:\s*")([^"]*)("\s*)$/m,
                 (match, g1, currentName, g3) => {
                     if (currentName.toLowerCase() === "example" || currentName.length === 0 || currentName.match(/^\s+$/)) {
