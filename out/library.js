@@ -38,7 +38,7 @@ class SorenOpeningCards {
     static InnerSelfUtilities = {
         /**
          * Returns a StoryCard matching the internal Regex on the StoryCard's title property.
-         * @returns {StoryCard} StoryCard. The InnerSelf StoryCard
+         * @returns {StoryCard?} StoryCard. The InnerSelf StoryCard
          */
         getStoryCard() {
             for (const storyCard of storyCards) {
@@ -49,15 +49,30 @@ class SorenOpeningCards {
             return null
         },
         /**
-         * Gets the characters from the InnerSelf StoryCard.
-         * @param {StoryCard} innerSelfStoryCard The InnerSelf StoryCard. If left empty, it will default to the InnerSelfUtilities.getStoryCard()
-         * @returns {String?} String?. A comma-separated string of characters found in InnerSelf StoryCard. 
+         * **\*Internal Use\***
+         * Verifies if the given Object is InnerSelf.
+         * @param {StoryCard?} innerSelfStoryCard InnerSelf StoryCard
+         * @returns {StoryCard?}
          */
-        getStoryCardCharacters(innerSelfStoryCard = this.getStoryCard()) {
+        verifyConfigCard(innerSelfStoryCard = null) {
+            innerSelfStoryCard = MysticalSorenUtilities.hasKeys(innerSelfStoryCard) ? innerSelfStoryCard : this.getStoryCard()
             if (!MysticalSorenUtilities.hasKeys(innerSelfStoryCard)) {
                 SorenOpeningCards.DEBUGGER.log("Could not get characters as Inner-Self Story Card is empty!")
-                return
+                return null
             }
+            if (!innerSelfStoryCard) { return null; }
+            if (!innerSelfStoryCard["description"]) { return null; }
+            if (!innerSelfStoryCard["entry"]) { return null; }
+            return innerSelfStoryCard
+        },
+        /**
+         * Gets the characters from the InnerSelf StoryCard.
+         * @param {StoryCard?} innerSelfStoryCard The InnerSelf StoryCard. If left empty, it will default to the InnerSelfUtilities.getStoryCard()
+         * @returns {string | undefined}  A comma-separated string of characters found in InnerSelf StoryCard. 
+         */
+        getStoryCardCharacters(innerSelfStoryCard = null) {
+            innerSelfStoryCard = this.verifyConfigCard(innerSelfStoryCard)
+            if (!innerSelfStoryCard) { return; }
             const innerSelfComment = /^>\s*.+$/gm // /^>\s*Write.*priority:$/im
             let idx = innerSelfComment.lastIndex
             let match = null
@@ -71,58 +86,68 @@ class SorenOpeningCards {
         },
         /**
          * Adds characters to the InnerSelf StoryCard if not already existing.
-         * @param {StoryCard} innerSelfStoryCard The InnerSelf StoryCard. If left empty, it will default to the InnerSelfUtilities.getStoryCard()
-         * @param {String} characterNames a comma-separated list of first names to be added into the InnerSelf StoryCard
+         * @param {StoryCard?} innerSelfStoryCard The InnerSelf StoryCard. If left empty, it will default to the InnerSelfUtilities.getStoryCard()
+         * @param {string} characterNames a comma-separated list of first names to be added into the InnerSelf StoryCard
          * @returns {void}
          */
-        addEntry(innerSelfStoryCard = this.getStoryCard(), characterNames = "") {
-            if (!MysticalSorenUtilities.hasKeys(innerSelfStoryCard)) {
-                SorenOpeningCards.DEBUGGER.log("Could not add entry as Inner-Self Story Card is empty!")
-                return
-            }
+        addEntry(innerSelfStoryCard = null, characterNames = "") {
+            innerSelfStoryCard = this.verifyConfigCard(innerSelfStoryCard)
+            if (!innerSelfStoryCard) { return; }
+            characterNames = typeof characterNames === "string" ? characterNames : ""
             if (characterNames === "") {
                 SorenOpeningCards.DEBUGGER.log("Could not add entry as the name to be added is empty!")
             }
 
             const characters = this.getStoryCardCharacters(innerSelfStoryCard)
-            if (typeof characters == "string") {
-                if (characters !== characterNames) {
-                    characterNames.split(',').forEach((characterName) => {
-                        if (!characters.includes(characterName)) {
-                            if (innerSelfStoryCard.description.endsWith('\n')) {
-                                innerSelfStoryCard.description += `${characterName}\n`
-                                return
-                            }
-                            innerSelfStoryCard.description += `\n${characterName}`
-                        }
-                    })
+            if (characters) {
+                if (characters === characterNames) {
+                    return
                 }
+                characterNames.split(',').forEach((characterName) => {
+                    characterName = characterName.trim()
+                    if (characterName.indexOf(' ') > -1) {
+                        SorenOpeningCards.DEBUGGER.log(`\
+                            Invalid InnerSelf Character Name. Names cannot have in-between spaces! \
+                            NameError: "${characterName}"\
+                            `)
+                        return
+                    }
+                    if (!characters.includes(characterName)) {
+                        innerSelfStoryCard.description += (
+                            (innerSelfStoryCard.description.endsWith('\n')) ? `${characterName}\n` : `\n${characterName}`
+                        )
+                    }
+                })
+
             }
         },
         /**
          * Gets the first name of a StoryCard by stopping at the first leftmost space character.
          * @param {StoryCard} storyCard The StoryCard to get the first name of
-         * @returns {String} String. A substring of the StoryCard.title
+         * @returns {string | undefined} A substring of the StoryCard.title
          */
         getFirstName(storyCard) {
             if (!MysticalSorenUtilities.hasKeys(storyCard)) {
                 SorenOpeningCards.DEBUGGER.log("Could not get first name as the given story card is empty!")
                 return
             }
-            let space = storyCard.title.indexOf(' ')
+            const scName = storyCard.title.trim()
+            let space = scName.indexOf(' ')
             space = space > -1 ? space : storyCard.title.length
-            return storyCard.title.substring(0, space)
+            return scName.substring(0, space)
         },
         /**
          * Whether InnerSelf is enabled.
-         * @param {StoryCard} innerSelfStoryCard The InnerSelf StoryCard
+         * @param {StoryCard | null} innerSelfStoryCard The InnerSelf StoryCard
          * @returns {boolean}
          */
-        isEnabled(innerSelfStoryCard = this.getStoryCard()) {
+        isEnabled(innerSelfStoryCard = null) {
+            innerSelfStoryCard = this.verifyConfigCard(innerSelfStoryCard)
             if (!MysticalSorenUtilities.hasKeys(innerSelfStoryCard)) {
                 SorenOpeningCards.DEBUGGER.log("Could not add entry as Inner-Self Story Card is empty!")
                 return false
             }
+            if (!innerSelfStoryCard) { return false; }
             return innerSelfStoryCard.entry.match(/^>\s*Enable.*Inner.?Self\s*:\s*true\s*$/im) ? true : false
         },
         /**
@@ -134,25 +159,24 @@ class SorenOpeningCards {
         },
         /**
          * Sets the player name in the InnerSelf Card
-         * @param {StoryCard} innerSelfStoryCard the InnerSelf StoryCard
+         * @param {StoryCard | null} innerSelfStoryCard the InnerSelf StoryCard
          * @param {string} playerName the name of the player
          * @returns {boolean} Whether it was successful.
          */
-        setPlayerName(playerName = "Example", innerSelfStoryCard = this.getStoryCard()) {
-            const config = SorenOpeningCards.getConfig()
-            if (MysticalSorenUtilities.hasItems(config.cards)) {
-                return false
-            }
+        setPlayerName(playerName = "Example", innerSelfStoryCard = null) {
+            innerSelfStoryCard = this.verifyConfigCard(innerSelfStoryCard)
             if (!MysticalSorenUtilities.hasKeys(innerSelfStoryCard)) {
                 SorenOpeningCards.DEBUGGER.log("Could not add entry as Inner-Self Story Card is empty!")
                 return false
             }
+            if (!innerSelfStoryCard) { return false }
             innerSelfStoryCard.entry = innerSelfStoryCard.entry.replace(
                 /^(>\s*First\s*name\s*of\s*player\s*character:\s*")([^"]*)("\s*)$/m,
                 (match, g1, currentName, g3) => {
-                    if (currentName === "Example" || currentName.length === 0 || currentName.match(/^\s+$/)) {
+                    if (currentName.toLowerCase() === "example" || currentName.length === 0 || currentName.match(/^\s+$/)) {
                         return `${g1}${playerName}${g3}`
                     }
+                    return `${g1}${currentName}${g3}`
                 })
             return true
         }
@@ -163,8 +187,8 @@ class SorenOpeningCards {
      */
     /**
      * @typedef SorenOpeningCardsConfiguration
-     * @property {Array<String>} cards a list of StoryCard IDs during initiation. StoryCards in here are considered "OpeningCards".
-     * @property {Number} configId Configuration StoryCard ID
+     * @property {Array<string>} cards a list of StoryCard IDs during initiation. StoryCards in here are considered "OpeningCards".
+     * @property {number} configId Configuration StoryCard ID
      * @property {SorenOpeningCardsUserConfiguration} config the User's configuration
      * @property {string} innerSelfCharacters InnerSelf's comma-separated character(s) string
      */
@@ -173,6 +197,7 @@ class SorenOpeningCards {
      * @returns {SorenOpeningCardsConfiguration}
      */
     static getConfig() {
+        // @ts-ignore
         return MysticalSorenUtilities.AIDungeon.getState(this.name, {
             cards: [],
             configId: -1,
@@ -243,7 +268,10 @@ class SorenOpeningCards {
             }
             config.cards.push(storyCard.id)
             if (this.InnerSelfUtilities.isInstalled) {
-                config.innerSelfCharacters += `${this.InnerSelfUtilities.getFirstName(storyCard)},`
+                const firstName = this.InnerSelfUtilities.getFirstName(storyCard)
+                if (firstName) {
+                    config.innerSelfCharacters += `${firstName},`
+                }
             }
         })
         if (config.innerSelfCharacters.endsWith(',')) {
@@ -259,8 +287,21 @@ class SorenOpeningCards {
     /**
      * Converts StoryCards currently in queue or matches the pattern found in the User's Configuration.
      * @param {"input" | "context" | "output"} context Is it running in "input" or {...} mode? Unimplemented for now.
+     * @returns {void}
      */
-    static run(context = "" /* May be removed */) {
+    static run(context) {
+        if (typeof context !== "string") {
+            return
+        }
+        switch (context) {
+            case "input":
+            case "context":
+            case "output":
+                break;
+            default:
+                this.DEBUGGER.log(`context isn't set to the three options: "input", "context", "output". Got: "${context}"`)
+                return
+        }
         const config = this.loadUserConfig()
         if (!MysticalSorenUtilities.hasItems(config.cards)) {
             this.DEBUGGER.log("OpeningCards must be initialed!")
@@ -291,21 +332,32 @@ class SorenOpeningCards {
         // #region AutoCard Config typedef reference
         /*
         config: [
-            "doAC", "deleteAllAutoCards", "pinConfigureCard", "addCardCooldown", "bulletedListMode", "defaultEntryLimit", "defaultCardsDoMemoryUpdates", "defaultMemoryLimit", "memoryCompressionRatio", "ignoreAllCapsTitles", "readFromInputs", "minimumLookBackDistance", "LSIv2", "showDebugData", "generationPrompt", "compressionPrompt", "defaultCardType"
+            "doAC", "deleteAllAutoCards", "pinConfigureCard",
+            "addCardCooldown", "bulletedListMode", "defaultEntryLimit",
+            "defaultCardsDoMemoryUpdates", "defaultMemoryLimit", "memoryCompressionRatio",
+            "ignoreAllCapsTitles", "readFromInputs", "minimumLookBackDistance",
+            "LSIv2", "showDebugData", "generationPrompt",
+            "compressionPrompt", "defaultCardType"
         ],
         */
         // #endregion
-
+        /** @type {boolean} */
+        // @ts-ignore
         const isInnerSelfEnabled = MysticalSorenUtilities.AIDungeon.getState("InnerSelf", { allow: false }).allow || this.InnerSelfUtilities.isEnabled()
+        /** @type {boolean} */
         const isAutoCardsEnabled = (
+            // @ts-ignore
             MysticalSorenUtilities.AIDungeon.getState("AutoCards", { config: { doAC: false } }).config.doAC ||
+            // @ts-ignore
             MysticalSorenUtilities.AIDungeon.getState("InnerSelf", { AC: { enabled: false } }).AC.enabled ||
+            // @ts-ignore
             MysticalSorenUtilities.AIDungeon.getState("InnerSelf", { auto: false }).auto
         )
         if (isInnerSelfEnabled || isAutoCardsEnabled) {
+            /** @type {StoryCard[]} */
             const queue = []
             const include_regex = new RegExp(`^${config.config.RegexLabel}: true$`, "gim")
-            let innerSelfStoryCard = null // to be removed when MainSettings.InnerSelf is respected through scripting.
+            const innerSelfStoryCard = this.InnerSelfUtilities.getStoryCard()
             storyCards.forEach(storyCard => {
                 if (storyCard.entry.startsWith("{title: ")) {
                     return
@@ -314,8 +366,7 @@ class SorenOpeningCards {
                     queue.push(storyCard)
                     return
                 }
-                if (storyCard.title.match(/^Configure\s*Inner\s*Self\s*$/gim)) {
-                    innerSelfStoryCard = storyCard
+                if (innerSelfStoryCard && storyCard === innerSelfStoryCard) {
                     return
                 }
                 if (config.cards.includes(storyCard.id)) {
@@ -328,12 +379,20 @@ class SorenOpeningCards {
             }
             while (queue.length > 0) {
                 const card = queue.shift()
+                if (!MysticalSorenUtilities.hasKeys(card)) {
+                    continue;
+                }
+                if (!card) { continue; }
                 card.entry = card.entry.replace(include_regex, "")
                 card.entry = card.entry.trim()
                 if (isAutoCardsEnabled) {
                     const built = AutoCards().API.buildCard(card.title, card.entry, card.type, undefined, card.description, undefined)
                     if (built) {
-                        const erased = AutoCards().API.eraseCard((searchCard) => {
+                        const erased = AutoCards().API.eraseCard(
+                            (
+                                /** @type {StoryCard} */
+                                searchCard
+                            ) => {
                             if (searchCard === card) {
                                 return true
                             }
@@ -342,7 +401,10 @@ class SorenOpeningCards {
                         if (erased) {
                             AutoCards().API.setCardAsAuto(built, true)
                             if (isInnerSelfEnabled && innerSelfStoryCard) {
-                                this.InnerSelfUtilities.addEntry(innerSelfStoryCard, this.InnerSelfUtilities.getFirstName(card))
+                                const firstName = this.InnerSelfUtilities.getFirstName(card)
+                                if (firstName) {
+                                    this.InnerSelfUtilities.addEntry(innerSelfStoryCard, firstName)
+                                }
                             }
                             continue
                         }
@@ -350,7 +412,10 @@ class SorenOpeningCards {
                     AutoCards().API.setCardAsAuto(card, true)
                 }
                 if (isInnerSelfEnabled && innerSelfStoryCard) {
-                    this.InnerSelfUtilities.addEntry(innerSelfStoryCard, this.InnerSelfUtilities.getFirstName(card))
+                    const firstName = this.InnerSelfUtilities.getFirstName(card)
+                    if (firstName) {
+                        this.InnerSelfUtilities.addEntry(innerSelfStoryCard, firstName)
+                    }
                 }
             }
         }
@@ -371,7 +436,7 @@ class SorenOpeningCards {
      * Runs OpeningCards as well as either InnerSelf or AutoCards.
      * @param {"input" | "context" | "output"} context
      */
-    static runAsOne(context = "") {
+    static runAsOne(context) {
         if (this.InnerSelfUtilities.isInstalled) {
             return this.runAsOneInnerSelf(context)
         }
@@ -382,7 +447,7 @@ class SorenOpeningCards {
      * @param {"input" | "context" | "output"} context
      * @returns {void}
      */
-    static runAsOneInnerSelf(context = "") {
+    static runAsOneInnerSelf(context) {
         this.initialize()
         InnerSelf(context)
         this.run(context)
@@ -392,7 +457,7 @@ class SorenOpeningCards {
      * @param {"input" | "context" | "output"} context
      * @returns {void}
      */
-    static runAsOneAutoCards(context = "") {
+    static runAsOneAutoCards(context) {
         this.initialize()
         AutoCards(context, text, false)
         this.run(context)
@@ -9258,7 +9323,7 @@ function AutoCards(inHook, inText, inStop) {
    * @property {String} namespace
    * @property {String} separator
    * @property {boolean} enabled
-   * @property {(...any) => void} log
+   * @property {(values: any) => void} log
    */
   /**
    * A class for everything related to troubleshooting and logging.
@@ -9275,31 +9340,40 @@ function AutoCards(inHook, inText, inStop) {
         if (!this.enabled) {
           return
         }
-        let apex = namespace + ":"
+        let message = namespace + ":"
+        /**
+         * Recursivly go through the number of values, stringifying the value.
+         * @param {any} value Any datatype is accepted.
+         * @returns the stringified value
+         */
         const composeString = (value) => {
-          let result = ""
+          let component = ""
           if (MysticalSorenUtilities.hasItems(value)) {
-            result += "["
-            value.forEach(item => {
-              result += `${composeString(item)},`
-            });
-            result = result.substring(0, result.length - 1) + "]"
-            return result
+            component += "["
+
+            /** @param {any} item */
+            const vCallback = (item) => {
+              component += `${composeString(item)},`
+            }
+            value.forEach(vCallback);
+
+            component = component.substring(0, component.length - 1) + "]"
+            return component
           }
           if (MysticalSorenUtilities.hasKeys(value)) {
-            result += "{"
+            component += "{"
             for (const [k, v] of Object.entries(value)) {
-              result += `${k}: ${composeString(v)},`
+              component += `${k}: ${composeString(v)},`
             }
-            result = result.substring(0, result.length - 1) + "}"
-            return result
+            component = component.substring(0, component.length - 1) + "}"
+            return component
           }
           return `${value}`
         }
         for (const value of values) {
-          apex += separator + composeString(value)
+          message += separator + composeString(value)
         }
-        console.log(apex)
+        console.log(message)
       }
     }
   }
@@ -9323,6 +9397,11 @@ function AutoCards(inHook, inText, inStop) {
    * @property {String} description also known as Notes
    * @property {boolean} useForCharacterCreation
    */
+  /**
+   * @typedef {Object} Placeholder
+   * @property {string} question The prompt that asks the user.
+   * @property {string} answer The given response to the corresponding question.
+   */
   static AIDungeon = {
     /**
      * Gets the current turn order.
@@ -9341,7 +9420,7 @@ function AutoCards(inHook, inText, inStop) {
     /**
      * Returns the latest action taken by the player.
      * @param {"input" | "context" | "output"} context the current context it is running on
-     * @returns {HistoryEntry} HistoryEntry. On fail, it returns null.
+     * @returns {HistoryEntry?} HistoryEntry.
      */
     getRecentAction(context) {
       if (!MysticalSorenUtilities.hasItems(history)) {
@@ -9364,96 +9443,96 @@ function AutoCards(inHook, inText, inStop) {
     },
     /**
      * Gets the storyCards index given an storycard.id
-     * @param {number | String} id storycard.id
+     * @param {number | string} id storycard.id
      * @returns {number} number. If not found, returns -1.
      */
     getStoryCardIndexById(id) {
-      const allowed_types = new Set(["number", "string"])
-      if (!allowed_types.has(typeof id)) {
-        MysticalSorenUtilities.#Private.Debugger.log("Could not get story card by id. id is not a number!")
+      if (typeof id === "string" || typeof id === "number") {
+        id = id.toString()
+        for (const [index, storyCard] of storyCards.entries()) {
+          if (storyCard.id === id) {
+            return index
+          }
+        }
+        MysticalSorenUtilities.#Private.Debugger.log(`Could not get story card by id with the search id of "${id}"`)
         return -1
       }
-      id = id.toString()
-      for (const [index, storyCard] of storyCards.entries()) {
-        if (storyCard.id === id) {
-          return index
-        }
-      }
-      MysticalSorenUtilities.#Private.Debugger.log(`Could not get story card by id with the search id of "${id}"`)
+      MysticalSorenUtilities.#Private.Debugger.log("Could not get story card by id. id is not a number!")
       return -1
+
+
     },
     /**
      * Gets StoryCards given a list of storycard.id
-     * @param {String[] | number[]} ids a list of storycard.id
+     * @param {string[] | number[]} ids a list of storycard.id
      * @returns {StoryCard[]} A array of StoryCards
      */
     getStoryCardsByIds(ids) {
-      const result = []
+      /** @type {StoryCard[]} */
+      const cards = []
       if (!MysticalSorenUtilities.hasItems(ids)) {
         MysticalSorenUtilities.#Private.Debugger.log("Could not get story cards. There are no ids to go through.")
-        return result
+        return cards
       }
       for (const id of ids) {
         const idx = this.getStoryCardIndexById(id)
         if (idx < 0) {
           continue
         }
-        result.push(storyCards[idx])
+        cards.push(storyCards[idx])
       }
-      return result
-    },
-    /**
-     * Gets a list of storycard ids matching the name given.
-     * @param {String} name storycard.title
-     * @returns {String[]} An array of storycard.id, if any.
-     */
-    getStoryCardIdsByName(name) {
-      const result = []
-      if (typeof name !== "string") {
-        MysticalSorenUtilities.#Private.Debugger.log("Could not get story card id by name. name is not a number!")
-        return result
-      }
-      for (const storyCard of storyCards) {
-        if (storyCard.title === name) {
-          result.push(storyCard.id)
-        }
-      }
-      return result
+      return cards
     },
     /**
      * Gets StoryCards matching the name(s) given.
-     * @param {String[]} names a Array of storycard.title
+     * @param {string[]} names A array of storycard.title
      * @returns {StoryCard[]}
      */
     getStoryCardsByNames(names) {
-      const result = new Set()
+      /** @type {StoryCard[]} */
+      const cards = []
       if (!MysticalSorenUtilities.hasItems(names)) {
         MysticalSorenUtilities.#Private.Debugger.log("Could not get story cards. There are no names to go through.")
-        return Array.from(result)
+        return cards
       }
       for (const name of names) {
-        const ids = this.getStoryCardIdsByName(name)
-        const _storyCards = this.getStoryCardsByIds(ids)
-        for (const storyCard of _storyCards) {
-          result.add(storyCard)
+        for (const storyCard of storyCards) {
+          if (storyCard.title === name) {
+            cards.push(storyCard)
+          }
         }
       }
-      return Array.from(result)
+      return cards
+    },
+    /**
+     * Gets a list of storycard ids matching the name given.
+     * @param {string} name storycard.title
+     * @returns {string[]} An array of storycard.id, if any.
+     */
+    getStoryCardIdsByName(name) {
+      /** @type {string[]} */
+      const cards = []
+      for (const storyCard of this.getStoryCardsByNames([name])) {
+        cards.push(storyCard.id)
+      }
+      return cards
     },
     /**
      * Converts a array of StoryCards into a Map with the storycard.id
      * being the key to the StoryCard
-     * @param {StoryCard[]} _storyCards An array of StoryCards
+     * @param {StoryCard[]?} _storyCards An array of StoryCards. If left empty, it defaults to the global storyCards.
      * @returns {Map<string,StoryCard>} an map of storycard.id keys to StoryCard values
      */
-    getStoryCardsAsMap(_storyCards) {
-      let __storyCards = _storyCards
+    getStoryCardsAsMap(_storyCards = null) {
       if (!MysticalSorenUtilities.hasItems(_storyCards)) {
-        MysticalSorenUtilities.#Private.Debugger.log("Given storyCards has no items. Defaulting to global storyCards")
-        __storyCards = storyCards
+        MysticalSorenUtilities.#Private.Debugger.log(`\
+          Given storyCards has no items. Defaulting to global storyCards\
+        `)
+        _storyCards = storyCards
       }
       const result = new Map()
-      for (const storyCard of __storyCards) {
+      // @ts-ignore
+      for (const storyCard of _storyCards) {
         result.set(storyCard.id, storyCard)
       }
       return result
@@ -9479,15 +9558,36 @@ function AutoCards(inHook, inText, inStop) {
      * @param {Object} stateObject the state object
      */
     setState(stateName, stateObject) {
+      if (typeof stateName !== "string") {
+        MysticalSorenUtilities.#Private.Debugger.log(`\
+          Couldn't set state. The name isn't type of "string", found "${typeof stateName}"\
+        `)
+        return
+      }
+      if (!MysticalSorenUtilities.isPlainObject(stateObject)) {
+        MysticalSorenUtilities.#Private.Debugger.log(`\
+          Couldn't set state. The stateObject isn't a plain Object.\
+        `)
+        return
+      }
+      // @ts-ignore
       state[stateName] = stateObject
     },
     /**
      * Gets the state.
      * @param {String} stateName the state name
-     * @param {Object} alternative the given result if the given stateName is undefined.
+     * @param {Object} alternative Returns this object if it fails. If left out, it gives an empty Object.
      * @returns {Object}
      */
     getState(stateName, alternative = {}) {
+      alternative = !MysticalSorenUtilities.isPlainObject(alternative) ? alternative : {}
+      if (typeof stateName !== "string") {
+        MysticalSorenUtilities.#Private.Debugger.log(`\
+          Couldn't get state. The name isn't type of "string", found "${typeof stateName}. Returning with alternative..."\
+        `)
+        return alternative
+      }
+      // @ts-ignore
       return state[stateName] || alternative
     },
     /**
@@ -9495,215 +9595,21 @@ function AutoCards(inHook, inText, inStop) {
      * @param {String} stateName the state name
      */
     removeState(stateName) {
+      if (typeof stateName !== "string") {
+        MysticalSorenUtilities.#Private.Debugger.log(`\
+          Couldn't remove state. The name isn't type of "string", found "${typeof stateName}"\
+        `)
+        return
+      }
+      // @ts-ignore
       state[stateName] = undefined
-    },
-  }
-  // #endregion
-
-  // #region TOML
-  /**
-   * A class for generating and parsing TOML.
-   * @version 1.1.0
-   */
-  static TOML = {
-    /**
-     * Parses a TOML String Document.
-     * 
-     * __Unsupported features:__
-     * * Date and Time formats
-     * * Inline Tables
-     * * Fractional/Exponential Float formats
-     * @param {String} toml_document A TOML Document
-     * @returns {Object} a Javascript Object
-     * @version 1.1.0
-     */
-    parse(toml_document = "") {
-      const VERBOSE = true
-      console.log(`Current Document:
-                ${toml_document}`)
-      /**
-       * @type {"Key" | "Comment" | "Value" | ""}
-       */
-      let tomlType = ""
-      let tomlKey = ""
-      /**
-       * @type {String | Number | Array | Object}
-       */
-      let tomlValue = ""
-      let table = ""
-
-      // #region TOML Utility Methods
-      /**
-       * Checks if the given string's value is a inferred string type
-       * @param {String} str the string to check for
-       * @returns {boolean}
-       */
-      const isValueAString = (str) => {
-        return str.match(/^['"]/) ? true : false
-      }
-      /**
-       * Checks if the given string's value has unclosed quotations
-       * @param {String} str the string to check for
-       * @returns {boolean}
-       */
-      const isUnclosedString = (str) => {
-        return isValueAString(str) && str.match(/['"]$/) === null
-      }
-      // #endregion
-      const matches = Array.from(toml_document.matchAll(/[^\t \n]+[\t \n]?/g))
-      const jsonObject = {}
-      do {
-        const token = matches.shift()[0].trimStart()
-        const isEndOfLine = (token.match(/\n$/) || (matches.length === 0)) ? true : false
-        if (tomlType.length === 0) {
-          if (token.match(/^#/)) {
-            tomlType = "Comment"
-            continue
-          }
-          tomlType = "Key"
-        }
-        if (tomlType === "Comment") {
-          if (isEndOfLine) {
-            tomlType = ""
-          }
-          continue
-        }
-        if (tomlType === "Key") {
-          if (tomlKey.length === 0) {
-            tomlKey = token
-            if (isValueAString(tomlKey)) {
-              continue
-            }
-            tomlKey = tomlKey.trimEnd()
-            continue
-          }
-          if (isUnclosedString(tomlKey)) {
-            tomlKey += token
-            continue
-          }
-          if (token.match(/^=/)) {
-            tomlType = "Value"
-            tomlKey = tomlKey.trimEnd()
-            MysticalSorenUtilities.#Private.Debugger.log("[TOML Key]=", JSON.stringify(tomlKey))
-            continue
-          }
-          console.log("[Warning]!!!")
-          continue
-        }
-        if (tomlType === "Value") {
-          const isMultilineString = () => { return tomlValue.match(/^['"]{3}/) ? true : false }
-          if (tomlValue.length === 0) {
-            tomlValue = token
-            if (isValueAString(tomlValue)) {
-              if (tomlValue.match(/^['"]{3}\n/)) {
-                tomlValue = tomlValue.substring(0, 3)
-              }
-              continue
-            }
-            tomlValue = tomlValue.trimEnd()
-          }
-          if (isMultilineString()) {
-            if (token.match(/['"]{3}\n?/)) {
-              tomlValue += token.replace(/\n$/, '')
-              tomlValue = tomlValue.substring(3, tomlValue.length - 4)
-              MysticalSorenUtilities.#Private.Debugger.log("[TOML Value]=", JSON.stringify(tomlValue))
-              if (isValueAString(tomlKey)) {
-                tomlKey = tomlKey.substring(1, tomlKey.length - 1)
-              } else if (tomlKey.includes('.')) {
-                MysticalSorenUtilities.#Private.Debugger.log("Dotted Keys are unsupported at the moment.")
-                /*
-                const keys = tomlKey.split('.')
-                do {
-                  const k = keys.shift()
-                  if (keys.length === 0) {
-                    tomlKey = k
-                    continue
-                  }
-                  jsonObject
-                } while (keys.length > 0);
-                 */
-              }
-              jsonObject[tomlKey] = tomlValue
-              tomlType = ""
-              tomlKey = ""
-              tomlValue = ""
-              continue
-            }
-            tomlValue += token
-            continue
-          }
-          if (isUnclosedString(tomlValue)) {
-            if (isEndOfLine) {
-              tomlValue += token.replace(/\n$/, '')
-              tomlValue = tomlValue.substring(1, tomlValue.length - 1)
-              MysticalSorenUtilities.#Private.Debugger.log("[TOML Value]=", JSON.stringify(tomlValue))
-              if (isValueAString(tomlKey)) {
-                tomlKey = tomlKey.substring(1, tomlKey.length - 1)
-              } else if (tomlKey.includes('.')) {
-                MysticalSorenUtilities.#Private.Debugger.log("Dotted Keys are unsupported at the moment.")
-                /*
-                const keys = tomlKey.split('.')
-                do {
-                  const k = keys.shift()
-                  if (keys.length === 0) {
-                    tomlKey = k
-                    continue
-                  }
-                  jsonObject
-                } while (keys.length > 0);
-                 */
-              }
-              jsonObject[tomlKey] = tomlValue
-              tomlType = ""
-              tomlKey = ""
-              tomlValue = ""
-              continue
-            }
-            tomlValue += token
-            continue
-          }
-          if (isEndOfLine) {
-            tomlValue = tomlValue.replaceAll('_', '')
-            const lower = tomlValue.toLowerCase()
-            tomlValue = lower === "true" ? true : lower === "false" ? false : tomlValue
-            tomlValue = typeof tomlValue === "string" ? Number(tomlValue) : tomlValue
-            jsonObject[tomlKey] = tomlValue
-            MysticalSorenUtilities.#Private.Debugger.log("[TOML Value]=", JSON.stringify(tomlValue))
-            if (isValueAString(tomlKey)) {
-              tomlKey = tomlKey.substring(1, tomlKey.length - 1)
-            } else if (tomlKey.includes('.')) {
-              MysticalSorenUtilities.#Private.Debugger.log("Dotted Keys are unsupported at the moment.")
-              /*
-              const keys = tomlKey.split('.')
-              do {
-                const k = keys.shift()
-                if (keys.length === 0) {
-                  tomlKey = k
-                  continue
-                }
-                jsonObject
-              } while (keys.length > 0);
-               */
-            }
-            tomlType = ""
-            tomlKey = ""
-            tomlValue = ""
-            continue
-          }
-          console.log("[Warning]!!!")
-          continue
-        }
-        console.log(JSON.stringify(token))
-      } while (matches.length > 0);
-      MysticalSorenUtilities.#Private.Debugger.log(jsonObject)
-      console.log(jsonObject)
-      return
     }
   }
   // #endregion
+
   /**
    * Checks if the given parameter is a Array and isn't empty.
-   * @param {Array} arr The given Array object
+   * @param {any} arr The given Array object
    * @returns {boolean}
    */
   static hasItems(arr) {
@@ -9711,7 +9617,7 @@ function AutoCards(inHook, inText, inStop) {
   }
   /**
    * Checks if the given Object is a basic Object.
-   * @param {Object} obj The given Object
+   * @param {any} obj The given Object
    * @returns {boolean}
    */
   static isPlainObject(obj) {
@@ -9719,7 +9625,7 @@ function AutoCards(inHook, inText, inStop) {
   }
   /**
    * Checks if the given Object is a basic Object and isn't empty.
-   * @param {Object} obj the given Object
+   * @param {any} obj the given Object
    * @returns {boolean}
    */
   static hasKeys(obj) {
@@ -9772,7 +9678,7 @@ function AutoCards(inHook, inText, inStop) {
     })
   }
   /**
-   * Escapes a character with a preceding "\"
+   * Escapes a character with a preceding "\\"
    * @param {string} str the string to begin the escaping
    * @returns {string} The escaped form
    */
