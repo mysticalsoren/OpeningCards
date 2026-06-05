@@ -188,6 +188,7 @@ class SorenOpeningCards {
     /**
      * @typedef SorenOpeningCardsConfiguration
      * @property {Array<string>} cards a list of StoryCard IDs during initiation. StoryCards in here are considered "OpeningCards".
+     * @property {Array<string>} blacklist a list of StoryCard IDs during initiation. These are blocked from initiation.
      * @property {number} configId Configuration StoryCard ID
      * @property {SorenOpeningCardsUserConfiguration} config the User's configuration
      * @property {string} innerSelfCharacters InnerSelf's comma-separated character(s) string
@@ -200,6 +201,7 @@ class SorenOpeningCards {
         // @ts-ignore
         return MysticalSorenUtilities.AIDungeon.getState(this.name, {
             cards: [],
+            blacklist: [],
             configId: -1,
             config: {
                 RegexLabel: "(?:AutoCards?)|(?:InnerSelf)"
@@ -264,12 +266,16 @@ class SorenOpeningCards {
             if (storyCard.entry.match(exclude_regex)) {
                 storyCard.entry = storyCard.entry.replace(exclude_regex, "")
                 storyCard.entry = storyCard.entry.trim()
+                config.blacklist.push(storyCard.id)
                 return
             }
             if (config.innerSelfCharacters.includes(storyCard.title)) {
                 return
             }
             if (`${config.configId}` === storyCard.id) {
+                return
+            }
+            if (config.blacklist.includes(storyCard.id)) {
                 return
             }
             config.cards.push(storyCard.id)
